@@ -12,23 +12,24 @@ approved_reviewers=$(cat approved_reviewers.txt)
 all_required_approved=true
 required_owners=()
 
-# Loop over each rule
+# Loop over each rule and match changed files with rules
 for path in $paths; do
   # Get list of owners for the current path
   owners=$(jq -r --arg path "$path" '.[$path][]' "$approval_rules_path")
   echo "Processing rule for path '$path' with owners: $owners"
 
   # Find changed files matching the current path
-  matched_files=$(printf "%s\n" "${changed_files[@]}" | grep -F "^$path")
+  # Using grep with -E to match both exact path and nested directories
+  matched_files=$(printf "%s\n" "${changed_files[@]}" | grep -E "^$path")
 
-  if [[ -z "$matched_files" ]]; then
-    echo "No changed files match the rule for path '$path'"
-  else
+  if [[ -n "$matched_files" ]]; then
     echo "Files matching rule '$path':"
     echo "$matched_files"
-    # Read owners into an array
+    # Read owners into an array and add them to required owners
     mapfile -t owners_array < <(echo "$owners")
     required_owners+=("${owners_array[@]}")
+  else
+    echo "No changed files match the rule for path '$path'"
   fi
 done
 
