@@ -1,0 +1,8 @@
+# Frontend specific files
+/client/            @phil397
+
+# Добавление пользователя для конкретного раздела
+/client/footer      @phil2195 @phil397
+
+# Backend specific files
+/app/               @phil2195
