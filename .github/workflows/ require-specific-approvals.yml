@@ -15,41 +15,39 @@ jobs:
         with:
           fetch-depth: 1
 
-      # Install dependencies if necessary
-      # - name: Install dependencies
-      #   run: |
-      #     sudo apt-get update
-      #     sudo apt-get install -y jq gh
-
       - name: Fetch changed files
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Fetching changed files from the pull request..."
+          echo "Получение списка измененных файлов из Pull Request..."
           gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files[].path' > changed_files.txt
-          echo "Changed files:"
+          echo "Измененные файлы:"
           cat changed_files.txt
 
       - name: Fetch approval rules
         run: |
-          echo "Fetching approval rules..."
+          echo "Загрузка правил утверждения..."
           cat .github/approval_rules.json
 
       - name: Fetch approved reviews from GitHub API
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Fetching latest reviews from GitHub API..."
+          echo "Получение последних обзоров из GitHub API..."
           gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews > reviews.json
 
-          echo "Processing reviews to get the latest state per reviewer..."
+          echo "Обработка обзоров для получения последнего статуса от каждого рецензента..."
           jq -r 'group_by(.user.login) | map(last) | .[] | select(.state == "APPROVED") | .user.login' reviews.json | sort -u > approved_reviewers.txt
 
-          echo "Approved reviewers list:"
+          echo "Список рецензентов, одобривших изменения:"
           cat approved_reviewers.txt
 
       - name: Make script executable
-        run: chmod +x ./.github/scripts/check_required_approvals.sh
+        run: chmod +x ./.github/scripts/check_required_approvals.js
 
       - name: Check if all required owners approved
-        run: ./.github/scripts/check_required_approvals.sh
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: node ./.github/scripts/check_required_approvals.js

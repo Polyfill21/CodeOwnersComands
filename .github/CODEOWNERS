@@ -1,8 +1,8 @@
 # Frontend specific files
-app/client/header            @Polyfill21/Polyfill22
+app/client/header            phil397
 
 # Добавление пользователя для конкретного раздела
 client/footer      @phil2195 @phil397
 
 # Backend specific files
-app/             @Polyfill21/PolyfillTeam1
+app/             @Polyfill21/Polyfill22
